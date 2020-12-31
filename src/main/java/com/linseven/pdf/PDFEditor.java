@@ -31,7 +31,7 @@ public class PDFEditor {
     public int fieldNum = 0;
     private List<PDRectangle> pdRectangleList = new ArrayList<>();
 
-    private List<Field> fields = new ArrayList<>();
+    private List<View> fields = new ArrayList<>();
 
     public void load(String filePath) throws IOException {
          document = PDDocument.load(new File(filePath));
@@ -176,7 +176,7 @@ public class PDFEditor {
             getForm((COSDictionary) field.getObject());
         }*/
         if(fields !=null &&fields.size()>0){
-            for(Field field:fields){
+            for(View field:fields){
                 if(field instanceof  CheckBox){
                     CheckBox checkBox = (CheckBox)field ;
                     System.out.print("type:"+checkBox.getType());
@@ -185,7 +185,8 @@ public class PDFEditor {
                     System.out.print(",width:"+checkBox.getWidth());
                     System.out.print(",height:"+checkBox.getHeight());
                     System.out.print(",pageNo:"+checkBox.getPageNo());
-                    System.out.println("check:"+checkBox.isCheck());
+                    System.out.print(",color:"+checkBox.getColor());
+                    System.out.println(",check:"+checkBox.isCheck());
                 }else if(field instanceof  TextField){
                     TextField textField = (TextField)field ;
                     System.out.print("type:"+textField.getType());
@@ -194,7 +195,8 @@ public class PDFEditor {
                     System.out.print(",width:"+textField.getWidth());
                     System.out.print(",height:"+textField.getHeight());
                     System.out.print(",pageNo:"+textField.getPageNo());
-                    System.out.println("text:"+textField.getText());
+                    System.out.print(",color:"+textField.getColor());
+                    System.out.println(",text:"+textField.getText());
                 } else if(field instanceof  Radio){
                     Radio radio = (Radio)field ;
                     System.out.print("type:"+radio.getType());
@@ -203,7 +205,8 @@ public class PDFEditor {
                     System.out.print(",width:"+radio.getWidth());
                     System.out.print(",height:"+radio.getHeight());
                     System.out.print(",pageNo:"+radio.getPageNo());
-                    System.out.println("value:"+radio.getSelectValue());
+                    System.out.print(",color:"+radio.getColor());
+                    System.out.println(",value:"+radio.getSelectValue());
                 }
             }
         }
@@ -250,6 +253,7 @@ public class PDFEditor {
                 if(widget.getColor()!=null) {
                     System.out.println(widget.getColor().toString());
                 }
+                pdTextField.setValue("hello");
                 TextField field = new TextField();
                 field.setX(x);
                 field.setY(y);
@@ -309,17 +313,42 @@ public class PDFEditor {
         }
     }*/
 
-    public void setFont(String fontStr,Field field){
+    public void setFont(String fontStr,Text field){
         if(fontStr == null || fontStr.trim().equals("")){
             return;
         }
         String [] fontItems = fontStr.split(" ");
         for(int i=0;i<fontItems.length;i++  ){
             String fontItem = fontItems[i];
-
+            if(i == 0){
+                field.setFont(fontItem);
+                continue;
+            }
             if(fontItem.equals("Tf")){
                 String fontSize = fontItems[i-1];
                 field.setFontSize(Float.valueOf(fontSize));
+            }else  if(fontItem.toLowerCase().equals("rg")){
+                float red = Float.valueOf(fontItems[i-3]);
+                float green = Float.valueOf(fontItems[i-2]);
+                float blue = Float.valueOf(fontItems[i-1]);
+                int redColor = (int)(red*255);
+                int greenColor = (int)(green*255);
+                int blueColor = (int)(blue*255);
+                String redStr = Integer.toHexString(redColor);
+                if(redStr.equals("0")){
+                    redStr = "00";
+                }
+                String greenStr = Integer.toHexString(greenColor);
+                if(greenStr.equals("0")){
+                    greenStr = "00";
+                }
+                String blueStr = Integer.toHexString(blueColor);
+                if(blueStr.equals("0")){
+                    blueStr = "00";
+                }
+                String rgb = redStr+greenStr+blueStr;
+                field.setColor(rgb);
+
             }
         }
     }

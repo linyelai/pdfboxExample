@@ -5,10 +5,19 @@ package main.java.com.linseven.pdf;
  * @version 1.0
  * @date 2020/12/30 17:40
  */
-public class Radio extends  Field {
+public class Radio extends  View {
     private String groupName;
     private String selectValue;
     private Integer selectIndex;
+    private String color;
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
 
     public String getGroupName() {
         return groupName;

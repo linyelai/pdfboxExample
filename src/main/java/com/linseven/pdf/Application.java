@@ -6,6 +6,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
 
 import java.awt.*;
 import java.io.IOException;
@@ -30,6 +31,15 @@ public class Application {
         contentStream.setFont( PDType1Font.TIMES_ROMAN, 12.0f );
         contentStream.setLeading(14.5f);
         contentStream.showText("h");
+        PDExtendedGraphicsState graphicsState = new PDExtendedGraphicsState();
+        // 设置透明度
+        graphicsState.setNonStrokingAlphaConstant(0.2f);
+        graphicsState.setAlphaSourceFlag(true);
+
+        contentStream.setGraphicsStateParameters(graphicsState);
+        contentStream.addRect(200, 650, 10, 10);
+        // 设置不划线颜色
+        contentStream.setNonStrokingColor(Color.GREEN);
         contentStream.close();
 
 

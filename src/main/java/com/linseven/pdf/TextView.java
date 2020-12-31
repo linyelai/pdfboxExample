@@ -10,7 +10,6 @@ public class TextView  extends View {
     private float fontSize;
     private String font;
     private String color;
-    private String backgroundColor;
 
     public String getText() {
         return text;
