@@ -15,10 +15,7 @@ import org.apache.pdfbox.text.TextPosition;
 import org.omg.Messaging.SYNC_WITH_TRANSPORT;
 
 import java.awt.image.RenderedImage;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -30,15 +27,31 @@ public class PDFDemo {
     public static void main(String[] args) throws IOException {
 
 
-        getObjectFromDoc();
+       // getObjectFromDoc();
          stripText();
         //getFont();
+        //printContent();
+    }
+
+    public static void printContent() throws IOException {
+
+        File file = new File("D:/SK03 P2.pdf");
+        FileInputStream inputStream = new FileInputStream(file);
+        int len = 0 ;
+        byte [] buff = new byte[1024];
+        while((len = inputStream.read(buff))>0){
+            System.out.println(new String(buff,0,len));
+        }
+        PDDocument document = PDDocument.load(file);
+        document.getDocumentCatalog().getAcroForm();
     }
 
  public static void getObjectFromDoc()throws IOException {
-        File file = new File("D:/fw2.pdf");
+        File file = new File("D:/pdf/ppt2pdf.pdf");
         PDDocument document = PDDocument.load(file);
         PDPage pdPage = document.getPage(0);
+        float pageHeight = pdPage.getBBox().getHeight();
+
         COSDictionary cosDictionary = pdPage.getCOSObject();
       //  print(cosDictionary);
         PDResources resources = pdPage.getResources();
@@ -136,8 +149,10 @@ public class PDFDemo {
 
     public  static void stripText() throws IOException {
 
-        File file = new File("D:/fw2.pdf");
+        File file = new File("D:\\SK03 P2.pdf");
         PDDocument document = PDDocument.load(file);
+        float y = document.getPage(0).getBBox().getHeight()-16-682.74f;
+        System.out.println("page height"+document.getPage(0).getBBox().getHeight()+"y:"+y);
          List<TextPosition> positions ;
         PDFTextStripper stripper = new PDFTextStripper()
         {
@@ -162,13 +177,17 @@ public class PDFDemo {
             {
                 if (startOfLine)
                 {
-                    TextPosition firstProsition = textPositions.get(0);
-                    writeString(String.format("[x:%s,y:%s]", firstProsition.getX(),firstProsition.getEndY()));
+
+                    TextPosition textPosition = textPositions.get(0);
+
+                    writeString(String.format("[x:%s,y:%s,endx:%s,endy:%s]", textPosition.getX(),textPosition.getY(),textPosition.getEndX(), textPosition.getEndY(), text));
                     startOfLine = false;
                 }
                 super.writeString(text, textPositions);
                 //positions = textPositions;
+
             }
+
             boolean startOfLine = true;
         };
 

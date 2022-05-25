@@ -1,30 +1,35 @@
 package main.java.com.linseven.pdf;
 
-import com.sun.javafx.binding.StringFormatter;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.cos.*;
 import org.apache.pdfbox.pdfparser.PDFStreamParser;
 import org.apache.pdfbox.pdfwriter.ContentStreamWriter;
-import org.apache.pdfbox.pdmodel.*;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.graphics.PDXObject;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
 import org.apache.pdfbox.pdmodel.interactive.form.*;
 
 import java.awt.*;
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Tyrion
  * @version 1.0
- * @date 2020/12/28 15:24
+ * @date 2021/3/1 19:51
  */
-public class PDFEditor {
+public class RemoveWaterMark {
 
     private PDDocument document;
     private Map<Integer, List<TextView>> textView  = new HashMap<>();
@@ -34,11 +39,11 @@ public class PDFEditor {
     private List<View> fields = new ArrayList<>();
 
     public void load(String filePath) throws IOException {
-         document = PDDocument.load(new File(filePath));
+        document = PDDocument.load(new File(filePath));
     }
 
 
-    public FontInfo removeText(int pageIndex,float x,float y) throws IOException {
+    public void removeText(int pageIndex,float x,float y) throws IOException {
 
         PDPage firstPage = (PDPage)document.getDocumentCatalog().getPages().get(pageIndex);
         PDFStreamParser parser = new PDFStreamParser(firstPage);
@@ -46,86 +51,31 @@ public class PDFEditor {
         List tokens = parser.getTokens();
         boolean start = false;
         List<Integer> removeIndex = new ArrayList();
-        FontInfo fontInfo = new FontInfo();
-        boolean rightPosition = false;
-        for (int j = 0; j < tokens.size(); j++)
+        int k=0;
+        for (int j =tokens.size()-1; k<6; j--)
         {
             Object next = tokens.get(j);
             if (next instanceof Operator)
             {
                 Operator op = (Operator) next;
                 // Tj and TJ are the two operators that display strings in a PDF
-                if(op.getName().equals("BT")){
-                    start = true;
-                    // removeIndexList.add(j);
-                    continue;
-                }
-                if(op.getName().equals("ET")){
-                    start = false;
-                    continue;
-                }
-
             }
-            if(start && next instanceof Operator &&  ((Operator) next).getName().equals("Td")){
 
-                COSFloat yF =  null;
-                COSInteger yInteger = null;
-                COSFloat xF =  null;
-                COSInteger xInteger = null;
-                if(tokens.get(j-1) instanceof  COSFloat) {
-                     yF = (COSFloat) tokens.get(j - 1);
-                }else{
-                    yInteger = (COSInteger) tokens.get(j - 1);
-                }
-                if(tokens.get(j-2) instanceof  COSFloat) {
-                    xF = (COSFloat) tokens.get(j - 2);
-                }else{
-                    xInteger = (COSInteger) tokens.get(j - 2);
-                }
-                float yaxis ;
-                float xaxis;
-                if(yF !=null) {
-                     yaxis = yF.floatValue();
-                }else{
-                    yaxis = yInteger.floatValue();
-                }
-                if(xF !=null) {
-                    xaxis = xF.floatValue();
-                }else{
-                    xaxis = xInteger.floatValue();
-                }
-
-                System.out.println("("+xaxis+","+yaxis+")");
-                if(yaxis==y && xaxis ==x){
-                    rightPosition = true;
-                }
-
-                continue;
-            }
-            if(start && next instanceof Operator &&  ((Operator) next).getName().equals("Tj") && rightPosition){
+            if(next instanceof Operator &&  ((Operator) next).getName().equals("Tj")){
                 removeIndex.add(j);
                 removeIndex.add(j-1);
-                rightPosition =false;
+                k++;
                 continue;
             }
-            if(start && next instanceof Operator &&  ((Operator) next).getName().equals("Tf")){
-                COSInteger fontSize = (COSInteger)tokens.get(j-1);
-                COSName  font = (COSName) tokens.get(j-2);
-                fontInfo.setFont(font);
-                fontInfo.setFontSize(fontSize.intValue());
-                continue;
-            }
-            if(start){
-                continue;
-            }
+
 
         }
         List newToken = new ArrayList();
         for(int i=0;i<tokens.size();i++){
-
-            if(!removeIndex.contains(i)){
-                newToken.add(tokens.get(i));
+            if(removeIndex.contains(i)){
+                continue;
             }
+            newToken.add(tokens.get(i));
         }
         // now that the tokens are updated we will replace the page content stream.
         PDStream updatedStream = new PDStream(document);
@@ -134,30 +84,19 @@ public class PDFEditor {
         tokenWriter.writeTokens(newToken);
         out.close();
         firstPage.setContents(updatedStream);
-        return fontInfo;
+
     }
 
 
     public void updateText(int pageIndex,float x,float y,String content,String targetPath) throws IOException {
 
-        FontInfo fontInfo = removeText(pageIndex,x,y);
-        PDPage pdPage = document.getPage(pageIndex);
-        PDPageContentStream contentStream = new PDPageContentStream(document, pdPage,PDPageContentStream.AppendMode.APPEND,false);
-        contentStream.beginText();
-        contentStream.newLineAtOffset(x, y);
-        PDFont pdFont = PDType1Font.TIMES_ROMAN;
-        float fontSize = 12.0f;
-        if(fontInfo.getFontSize()>0){
-            fontSize = fontInfo.getFontSize();
-        }
-        contentStream.setFont( pdFont, fontSize );
-        contentStream.setLeading(fontSize);
-        contentStream.showText(content);
-        contentStream.endText();
-        contentStream.close();
+         removeText(pageIndex,x,y);
+
+
+    }
+    public void save(String targetPath) throws IOException {
         document.save(targetPath); //Output file name
         document.close();
-
     }
 
     public void getFormField(int pageIndex) throws IOException {
@@ -165,7 +104,7 @@ public class PDFEditor {
         PDAcroForm pdAcroForm = pdDocumentCatalog.getAcroForm();
         List<PDField> fieldList = pdAcroForm.getFields();
         for(PDField f:fieldList){
-           listField(f);
+            listField(f);
         }
       /*  COSDictionary cosDictionary = pdAcroForm.getCOSObject();
         COSArray fields = (COSArray)cosDictionary.getItem("Fields");
@@ -233,7 +172,7 @@ public class PDFEditor {
             float y = pdRectangle.getLowerLeftY();
             float width = pdRectangle.getUpperRightX()-x;
             float height = pdRectangle.getUpperRightY()-y;
-            if(pdField instanceof  PDCheckBox){
+            if(pdField instanceof PDCheckBox){
                 PDCheckBox  checkBox  = (PDCheckBox)pdField;
                 CheckBox field = new CheckBox();
                 field.setCheck(checkBox.isChecked());
@@ -248,7 +187,7 @@ public class PDFEditor {
             }else if(pdField instanceof PDTextField){
                 PDTextField pdTextField = (PDTextField)pdField;
                 COSDictionary cosObject11 = pdTextField.getCOSObject();
-                COSBase  fontInfo = cosObject11.getItem(COSName.DA);
+                COSBase fontInfo = cosObject11.getItem(COSName.DA);
 
                 if(widget.getColor()!=null) {
                     System.out.println(widget.getColor().toString());
@@ -373,16 +312,13 @@ public class PDFEditor {
     }
     public static void main(String[] args) throws IOException {
 
-        PDFEditor pdfEditor = new PDFEditor();
-        pdfEditor.load("d:/fw2.pdf");
-        pdfEditor.getFormField(1);
-        pdfEditor.draw();
-     //   pdfEditor.updateText(0,218.108f,1369.264f,"i am so sad","d:/update.pdf");
+        RemoveWaterMark pdfEditor = new RemoveWaterMark();
+        pdfEditor.load("d:/pdf/ppt2pdf.pdf");
+        for(int i=0;i<1;i++){
+            pdfEditor.updateText(i, 218.108f, 1369.264f, "i am so sad", "d:/pdf/remove-water-update.pdf");
+        }
+        pdfEditor.save("d:/pdf/remove-water-update1.pdf");
         System.out.println(pdfEditor.fieldNum);
 
     }
-
-
-
-
 }
