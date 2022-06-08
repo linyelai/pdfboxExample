@@ -1,4 +1,4 @@
-package main.java.com.linseven.test;
+package com.linseven.test;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -9,6 +9,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.StorageClass;
 import com.mongodb.client.MongoCollection;
 import lombok.SneakyThrows;
+import com.linseven.SaveUploadHistoryTask;
 import org.bson.Document;
 
 import java.io.*;
@@ -23,12 +24,14 @@ public class UploadTask  implements  Runnable{
 
     private Document document;
     private static final String dir = "F:\\bidcar";
+    private SaveUploadHistoryTask saveUploadHistoryTask;
     //
    // private static final String dir = "\\\\PS2022XXOQOOCG\\e\\bitCars";
     private MongoCollection mongoCollection;
-    public UploadTask(Document document, MongoCollection mongoCollection){
+    public UploadTask(Document document, MongoCollection mongoCollection, SaveUploadHistoryTask saveUploadHistoryTask){
         this.document = document;
         this.mongoCollection = mongoCollection;
+        this.saveUploadHistoryTask = saveUploadHistoryTask;
 
     }
 
@@ -39,6 +42,7 @@ public class UploadTask  implements  Runnable{
         try {
             AmazonS3 amazonS3 = AmazonS3ClientBuilder.defaultClient();
             String path =  (String)this.document.get("full_path");
+            //path = path.replace("\\\\PS2022XXOQOOCG\\e","\\\\PS2022XXOQOOCG\\d");
             FileInputStream fileInputStream = new FileInputStream(path);
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             int len = 0;
@@ -62,12 +66,14 @@ public class UploadTask  implements  Runnable{
             amazonS3.putObject(putObjectRequest);
             //
             this.document.put("status", 1);
+            //this.saveUploadHistoryTask.add(this.document);
+            System.out.println(this.document.get("path"));
             Document filter = new Document();
             filter.put("_id", this.document.get("_id"));
             Document updateOperation = new Document();
             updateOperation.put("$set", this.document);
             this.mongoCollection.updateOne(filter, updateOperation);
-            System.out.println(this.document.get("path"));
+//            System.out.println(this.document.get("path"));
         }catch (Exception e){
             e.printStackTrace();
         }

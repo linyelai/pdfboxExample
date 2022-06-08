@@ -1,4 +1,4 @@
-package main.java.com.linseven;
+package com.linseven;
 
 /**
  * @author Tyrion
