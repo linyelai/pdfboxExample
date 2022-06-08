@@ -1,0 +1,21 @@
+1、
+父方法添加了@Transactional 注解，那么子方法没有添加@Transactional，那么子方法操作与父方法操作在同一个事务中
+父方法添加了@Transactional(propagation = Propagation.REQUIRES) 注解，那么子方法添加@Transactional，那么子方法操作与父方法操作在同一个事务中
+父方法添加了@Transactional(propagation = Propagation.REQUIRES) 注解，那么子方法添加@Transactional(propagation = Propagation.REQUIRES_NEW)，那么子
+那么子方法开启一个新的事务，父方法开启一个新的事务，两个事务互不关联
+父方法没添加注解，那么子方法添加@Transactional(propagation = Propagation.SUPPORTS)，那么子
+那么子方法父方法都不开启事务
+父方法添加@Transactional(propagation = Propagation.REQUIRES)注解，那么子方法添加@Transactional(propagation = Propagation.SUPPORTS)，那么子
+那么子方法父方法在同一个事务中
+父方法添加@Transactional(propagation = Propagation.REQUIRES)注解，那么子方法添加@Transactional(propagation = Propagation.NOT_SUPPORTED)，那么子
+那么子方法不开启事务，父方法开启事务
+父方法添加@Transactional(propagation = Propagation.REQUIRES)注解，那么子方法添加@Transactional(propagation = Propagation.MANDATORY)，那么子
+那么子方法父方法在同一个事务中
+父方法没添加@Transactional注解，那么子方法添加@Transactional(propagation = Propagation.MANDATORY)，那么子
+那么子方法调用抛出异常
+父方法@Transactional(propagation = Propagation.REQUIRES)注解，那么子方法添加@Transactional(propagation = Propagation.NEVER)，那么子
+那么子方法调用抛出异常
+
+
+
+

@@ -1,6 +1,7 @@
 import com.linseven.Application;
 import com.linseven.model.UserPO;
 import com.linseven.service.UserService;
+import com.linseven.service.UserServiceImp;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,7 +19,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @Slf4j
 public class TestApplication {
     @Autowired
-    private UserService userService;
+    private UserServiceImp userService;
 
     @Test
     public void findUser(){

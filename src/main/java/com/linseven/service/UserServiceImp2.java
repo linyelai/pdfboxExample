@@ -15,23 +15,19 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Slf4j
-public class UserServiceImp implements  UserService {
+public class UserServiceImp2 implements  UserService {
 
     @Autowired
     private UserMapper userMapper;
-    @Autowired
-    private UserServiceImp2 userServiceImp2;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void addUser(UserPO userPO) throws Exception {
-
+       userMapper.addUser(userPO);
        UserPO userPO1 = new UserPO();
        userPO1.setUsername("test");
-       userPO1.setPassword("6543210");
-        userServiceImp2.updateUser(userPO1);
-        userMapper.addUser(userPO);
-        throw new Exception();
+       userPO1.setPassword("654321");
+       updateUser(userPO1);
     }
 
     @Override
@@ -40,12 +36,12 @@ public class UserServiceImp implements  UserService {
     }
 
 
-   // @Transactional(rollbackFor = Exception.class,propagation = Propagation.REQUIRES_NEW)
+    @Transactional(rollbackFor = Exception.class,propagation = Propagation.NOT_SUPPORTED)
     @Override
     public void updateUser(UserPO userPO) throws Exception {
 
         log.info("update user:{}",userPO);
         userMapper.updateUser(userPO);
-        throw new Exception();
+
     }
 }
